@@ -1,3 +1,8 @@
+CREATE TABLE Z1309(
+Cur1 INT ,
+SysV1 INT,
+DDate1 datetime)
+
 INSERT INTO [ALSYSTEM].[dbo].[Z1227yc](Cur1,SysV1,DDate1  )
 SELECT B.[Cur]Cur1,[SysV]SysV1,B.[DDate]DDate1 
    from [ALSYSTEM].[dbo].[Trend_1_1_1]B  
