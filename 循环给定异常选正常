@@ -1,0 +1,27 @@
+declare @i int
+set @i =1
+declare @k int
+set @k =1100
+declare @d datetime
+set @d='2014-05-03 16:43:59.500'
+declare @s VARCHAR(10)
+set @s = '1_1_1'
+declare @str VARCHAR(2000)
+while @i <= 20
+begin
+
+set @str = '
+INSERT INTO [ALSYSTEM].[dbo].[Z1227test1](Cur,SysV,DDate)
+SELECT  [Cur],[SysV],B.[DDate] from [ALSYSTEM].[dbo].[Trend_'+@s+']B  
+ JOIN (SELECT * FROM(
+ SELECT *,DATEDIFF(hour,''' + RTRIM(@d ) +''',T1.DDate) as tdiff1 , DATEDIFF(hour,''' + RTRIM(@d ) +''',LEAD (T1.DDate)OVER(ORDER BY T1.DDate)) as tdiff2
+	from [ALSYSTEM].[dbo].[AlarmRecordTable]T1
+	WHERE T1.POTNO='+CONVERT(VARCHAR(10),@k+@i)+'AND T1.RecordNo = 81)d
+	WHERE  tdiff1 <-24  and tdiff2 >24 AND DATEPART(hh,DDate) >1)e
+  on B.DDate >= DATEADD(MINUTE, 0,''' + RTRIM(@d ) +''') AND B.DDate <= DATEADD(MINUTE, 60,''' + RTRIM(@d ) +''')
+  ORDER BY cast( B.DDate as datetime)
+   '
+exec(@str)
+set @i = @i + 1
+
+end
