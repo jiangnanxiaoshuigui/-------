@@ -1,0 +1,13 @@
+INSERT INTO [ALSYSTEM].[dbo].[Z1227yc](Cur1,SysV1,DDate1  )
+SELECT B.[Cur]Cur1,[SysV]SysV1,B.[DDate]DDate1 
+   from [ALSYSTEM].[dbo].[Trend_1_1_1]B  
+ JOIN (
+	SELECT * 
+		FROM(
+		SELECT *,DATEDIFF(hour,T1.DDate,LAG(T1.DDate)OVER(ORDER BY T1.DDate)) as tdiff , DATEDIFF(hour,T1.DDate,LEAD (T1.DDate)OVER(ORDER BY T1.DDate)) as tdiff1 
+		from [ALSYSTEM].[dbo].[AlarmRecordTable]T1
+		WHERE T1.POTNO=1110 AND T1.RecordNo = 81)d
+		WHERE  tdiff <-24 and tdiff1 >24 AND DATEPART(hh,DDate) > 1)e
+		on B.DDate > DATEADD(MINUTE, -61, e.DDate) AND B.DDate <= DATEADD(MINUTE, -1, e.DDate)
+
+ORDER BY cast(B.DDate as datetime)
