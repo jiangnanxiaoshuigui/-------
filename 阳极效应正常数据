@@ -1,0 +1,48 @@
+declare @i int
+set @i =11
+declare @k int
+set @k = 1100
+declare @s VARCHAR(10)
+set @s = '1_1_1'
+declare @str VARCHAR(2000)
+
+while @i <= 11
+begin
+
+set @str = '
+INSERT INTO [ALSYSTEM].[dbo].[ZTestZCTEMP](S ,H,O ,Cur ,SysV ,DDate ,PotNo ,DDDate ,AlCnt ,Lsp,Djzsp ,Djwd,Fzb ,FeCnt ,SiCnt ,PotNoDT,DDDdate,RunTime,Yjxc ,PotNoAge,PotAge,Age,StartCnt)
+SELECT * 
+FROM (
+SELECT * 
+FROM (SELECT B.[S'+CONVERT(VARCHAR(10),@i)+'] as S,B.[H'+CONVERT(VARCHAR(10),@i)+'] as H,B.[O'+CONVERT(VARCHAR(10),@i)+'] as O,B.[Cur],B.[SysV],B.[DDate]
+   from [ALSYSTEM].[dbo].[Trend_'+@s+']B  
+  JOIN (
+	SELECT * 
+		FROM(
+		SELECT *,DATEDIFF(HOUR,T1.DDate,LAG(T1.DDate)OVER(ORDER BY T1.DDate)) as tdiff
+		from [ALSYSTEM].[dbo].[AETable]T1
+		WHERE T1.POTNO=  '+CONVERT(VARCHAR(10),@k+@i)+' )d
+		WHERE  tdiff <-72  AND  DATEPART(hh,DDate) > 1 )e
+		on B.DDate > DATEADD(HOUR, -48, e.DDate) AND B.DDate <= DATEADD(HOUR, -24, e.DDate))G
+JOIN (SELECT [PotNo],[DDate] as DDDate,[AlCnt],[Lsp],[Djzsp],[Djwd],[Fzb],[FeCnt],[SiCnt]
+	FROM [ALSYSTEM].[dbo].[MeasueDataTable]
+	WHERE [PotNo]=   '+CONVERT(VARCHAR(10),@k+@i)+'  AND [Fzb] is not NULL AND [AlCnt] is not NULL AND [FeCnt] is not NULL AND [SiCnt] is not NULL
+	)H
+	ON DATEDIFF(DAY, G.DDate, H.DDDate) = 0 )I
+	JOIN(SELECT * 
+FROM (
+	SELECT [PotNo] as PotNoDT,[Ddate]as DDDdate,[RunTime],[Yjxc]from [ALSYSTEM].[dbo].[DayTable]T2
+	WHERE T2.PotNo= '+CONVERT(VARCHAR(10),@k+@i)+' )j
+	join (SELECT [PotNo] as PotNoAge,[PotAge],[Age],[StartCnt]from [ALSYSTEM].[dbo].[PotAgeTable1])k
+	   on k.PotNoAge=j.PotNoDT)L
+	   on  DATEDIFF(DAY, I.DDate, L.DDDdate) = 0
+INSERT INTO [ALSYSTEM].[dbo].[ZTestZCD](rowNum,S ,H,O ,Cur ,SysV ,DDate ,PotNo ,DDDate ,AlCnt ,Lsp,Djzsp ,Djwd,Fzb ,FeCnt ,SiCnt ,PotNoDT,DDDdate,RunTime,Yjxc ,PotNoAge,PotAge,Age,StartCnt)
+select * from (select row_number() over (ORDER BY cast(DDate as datetime))as rowNum,* from [dbo].[ZTestZCTEMP])as t where rowNum between 1 and 1980
+ORDER BY DDate
+DELETE FROM  [dbo].[ZTestZCTEMP]
+
+'
+exec(@str)
+set @i = @i + 1
+
+end
